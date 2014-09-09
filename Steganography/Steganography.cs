@@ -11,6 +11,7 @@ using System.Windows.Forms;
 // 24 bits = file size in bytes
 // x bits = filename
 // x bits = file
+
 public class SteganoException : Exception
 {
     public SteganoException()
