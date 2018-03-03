@@ -6,8 +6,8 @@ using System.Windows.Forms;
 
 internal class CenterWinDialog : IDisposable
 {
-    private int mTries = 0;
-    private Form mOwner;
+    private readonly Form mOwner;
+    private int mTries;
 
     public CenterWinDialog(Form owner)
     {
@@ -15,22 +15,26 @@ internal class CenterWinDialog : IDisposable
         owner.BeginInvoke(new MethodInvoker(findDialog));
     }
 
+    public void Dispose()
+    {
+        mTries = -1;
+    }
+
     private void findDialog()
     {
         if (mTries < 0) return;
-        EnumThreadWndProc callback = new EnumThreadWndProc(checkWindow);
+        var callback = new EnumThreadWndProc(checkWindow);
         if (EnumThreadWindows(GetCurrentThreadId(), callback, IntPtr.Zero))
-        {
-            if (++mTries < 10) mOwner.BeginInvoke(new MethodInvoker(findDialog));
-        }
+            if (++mTries < 10)
+                mOwner.BeginInvoke(new MethodInvoker(findDialog));
     }
 
     private bool checkWindow(IntPtr hWnd, IntPtr lp)
     {
-        StringBuilder sb = new StringBuilder(260);
+        var sb = new StringBuilder(260);
         GetClassName(hWnd, sb, sb.Capacity);
         if (sb.ToString() != "#32770") return true;
-        Rectangle frmRect = new Rectangle(mOwner.Location, mOwner.Size);
+        var frmRect = new Rectangle(mOwner.Location, mOwner.Size);
         RECT dlgRect;
         GetWindowRect(hWnd, out dlgRect);
         MoveWindow(hWnd,
@@ -40,13 +44,6 @@ internal class CenterWinDialog : IDisposable
             dlgRect.Bottom - dlgRect.Top, true);
         return false;
     }
-
-    public void Dispose()
-    {
-        mTries = -1;
-    }
-
-    private delegate bool EnumThreadWndProc(IntPtr hWnd, IntPtr lp);
 
     [DllImport("user32.dll")]
     private static extern bool EnumThreadWindows(int tid, EnumThreadWndProc callback, IntPtr lp);
@@ -63,5 +60,13 @@ internal class CenterWinDialog : IDisposable
     [DllImport("user32.dll")]
     private static extern bool MoveWindow(IntPtr hWnd, int x, int y, int w, int h, bool repaint);
 
-    private struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
+    private delegate bool EnumThreadWndProc(IntPtr hWnd, IntPtr lp);
+
+    private struct RECT
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
 }

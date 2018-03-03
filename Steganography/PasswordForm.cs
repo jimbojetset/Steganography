@@ -5,23 +5,18 @@ namespace Steganography
 {
     public partial class PasswordForm : Form
     {
-        private string pass = "";
-
         public PasswordForm()
         {
             InitializeComponent();
             passwordTextBox.Focus();
         }
 
+        public string password { get; private set; } = "";
+
         private void okButton_Click(object sender, EventArgs e)
         {
-            pass = passwordTextBox.Text;
-            this.Close();
-        }
-
-        public string password
-        {
-            get { return pass; }
+            password = passwordTextBox.Text;
+            Close();
         }
     }
 }
